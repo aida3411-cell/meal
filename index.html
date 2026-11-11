@@ -3,77 +3,156 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#fff7ec">
   <title>조리실습 모둠 도우미</title>
   <style>
+    :root { color-scheme: light; --brown:#513421; --muted:#806c5b; --orange:#e77c2f; --cream:#fff7ec; }
     * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      min-height: 100dvh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 24px;
-      font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
-      background: linear-gradient(145deg, #fff9f0, #ffe7c9);
-    }
-    .container {
-      width: 100%;
-      max-width: 420px;
-      padding: 55px 26px;
-      text-align: center;
-      background: white;
-      border-radius: 28px;
-      box-shadow: 0 12px 35px rgba(120, 70, 20, 0.10);
-    }
-    .icon { font-size: 72px; margin-bottom: 22px; }
-    h1 {
-      margin: 0 0 18px;
-      color: #513421;
-      font-size: clamp(25px, 6vw, 32px);
-      line-height: 1.4;
-      word-break: keep-all;
-    }
-    .description {
-      color: #806c5b;
-      font-size: 16px;
-      line-height: 1.7;
-      margin: 0 0 38px;
-      word-break: keep-all;
-    }
-    .start-btn {
-      width: 100%;
-      min-height: 60px;
-      padding: 16px 24px;
-      background: #f28b39;
-      color: white;
-      border: none;
-      border-radius: 16px;
-      font-size: 21px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background 0.2s, transform 0.2s;
-    }
-    .start-btn:hover { background: #e97724; }
-    .start-btn:active { transform: scale(0.97); }
-    .start-btn:focus-visible { outline: 3px solid #9c541d; outline-offset: 4px; }
-    @media (max-width: 480px) {
-      .container { padding: 44px 22px; }
-      .icon { font-size: 64px; }
-    }
+    body { margin:0; min-height:100vh; min-height:100dvh; background:linear-gradient(145deg,#fff9f0,#ffe7c9); font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif; color:var(--brown); padding:22px 15px; }
+    .layout { min-height:calc(100dvh - 44px); display:flex; justify-content:center; align-items:center; }
+    .panel { width:100%; max-width:550px; background:#fff; border-radius:26px; padding:32px 24px; box-shadow:0 12px 35px rgba(120,70,20,.10); }
+    .home { max-width:420px; text-align:center; padding:52px 26px; }
+    .hero-icon { font-size:69px; margin-bottom:15px; }
+    h1 { font-size:clamp(25px,6vw,32px); line-height:1.4; margin:0 0 16px; word-break:keep-all; }
+    p { line-height:1.7; }
+    .description { color:var(--muted); font-size:16px; margin:0 0 34px; word-break:keep-all; }
+    button { font:inherit; cursor:pointer; touch-action:manipulation; }
+    .primary { width:100%; min-height:58px; color:#fff; background:var(--orange); border:0; border-radius:15px; font-size:19px; font-weight:700; }
+    .primary:hover { background:#cd6423; }
+    button:focus-visible, input:focus-visible { outline:3px solid #ad5b20; outline-offset:3px; }
+    [hidden] { display:none !important; }
+    .topbar { display:flex; align-items:center; gap:12px; margin-bottom:20px; }
+    .back { background:#fff3e5; border:0; border-radius:12px; min-height:44px; padding:0 14px; color:var(--brown); font-weight:700; }
+    .section-title { font-size:24px; margin:0; line-height:1.4; }
+    .hint { color:var(--muted); font-size:14px; margin:0 0 20px; }
+    .field-label { display:block; font-size:14px; font-weight:700; margin-bottom:7px; }
+    input { width:100%; min-width:0; min-height:48px; padding:11px 12px; border:1px solid #dcc9b7; border-radius:11px; background:#fff; color:#3f3025; font:inherit; font-size:16px; }
+    .dish-field { margin-bottom:22px; }
+    .table-head, .ingredient-row { display:grid; grid-template-columns:minmax(0,1.25fr) minmax(0,1fr) 42px; gap:9px; align-items:center; }
+    .table-head { padding:0 0 8px; color:#654b39; font-size:14px; font-weight:700; }
+    .ingredient-list { display:flex; flex-direction:column; gap:10px; }
+    .delete { width:42px; height:48px; border:0; border-radius:10px; background:#fff0ed; color:#aa442f; font-size:23px; }
+    .add { margin-top:14px; width:100%; min-height:48px; border:2px dashed #e6ac7a; border-radius:12px; background:#fffaf4; color:#9a541e; font-weight:700; }
+    .footer { margin-top:20px; display:flex; flex-direction:column; gap:10px; }
+    .save-note { font-size:13px; color:#786859; margin:0; text-align:center; }
+    .status { min-height:20px; margin:8px 0 0; font-size:14px; color:#356b43; text-align:center; }
+    @media(max-width:360px) { .panel { padding:24px 15px; } .section-title {font-size:21px;} .table-head,.ingredient-row {gap:6px; grid-template-columns:minmax(0,1.15fr) minmax(0,1fr) 39px;} .delete {width:39px;} input {padding:10px 8px;} }
   </style>
 </head>
 <body>
-  <main class="container">
-    <div class="icon" aria-hidden="true">👩‍🍳</div>
-    <h1>조리실습 모둠 도우미</h1>
-    <p class="description">우리 모둠의 즐겁고 체계적인 조리실습을 시작해요!</p>
-    <button type="button" class="start-btn" onclick="startApp()">시작하기</button>
-  </main>
+  <div class="layout">
+    <main class="panel home" id="homePage">
+      <div class="hero-icon" aria-hidden="true">👩‍🍳</div>
+      <h1>조리실습 모둠 도우미</h1>
+      <p class="description">우리 모둠의 즐겁고 체계적인 조리실습을 시작해요!</p>
+      <button class="primary" type="button" id="startBtn">시작하기</button>
+    </main>
+
+    <main class="panel" id="ingredientsPage" hidden>
+      <div class="topbar">
+        <button class="back" type="button" id="backBtn" aria-label="첫 화면으로 돌아가기">← 뒤로</button>
+        <h2 class="section-title">🥕 재료와 분량</h2>
+      </div>
+      <p class="hint">우리 모둠이 만들 음식에 필요한 재료와 분량을 적어 보세요.</p>
+      <div class="dish-field">
+        <label class="field-label" for="dishName">요리 이름</label>
+        <input id="dishName" type="text" placeholder="예: 햄치즈 샌드위치" maxlength="80" autocomplete="off">
+      </div>
+      <div class="table-head" aria-hidden="true"><span>재료명</span><span>분량</span><span></span></div>
+      <div class="ingredient-list" id="ingredientList"></div>
+      <button class="add" id="addBtn" type="button">＋ 재료 추가하기</button>
+      <div class="footer">
+        <button class="primary" id="saveBtn" type="button">재료 목록 저장하기</button>
+        <p class="save-note">저장한 내용은 이 기기의 브라우저에 보관됩니다.</p>
+        <p class="status" id="status" role="status" aria-live="polite"></p>
+      </div>
+    </main>
+  </div>
   <script>
-    function startApp() {
-      alert("준비 중입니다!");
+    'use strict';
+    const STORAGE_KEY = 'cooking-group-helper-ingredients-v1';
+    const homePage = document.getElementById('homePage');
+    const ingredientsPage = document.getElementById('ingredientsPage');
+    const ingredientList = document.getElementById('ingredientList');
+    const dishName = document.getElementById('dishName');
+    const status = document.getElementById('status');
+
+    function makeRow(name = '', amount = '') {
+      const row = document.createElement('div');
+      row.className = 'ingredient-row';
+      const nameInput = document.createElement('input');
+      nameInput.type = 'text';
+      nameInput.placeholder = '예: 식빵';
+      nameInput.maxLength = 80;
+      nameInput.setAttribute('aria-label', '재료명');
+      nameInput.value = name;
+      const amountInput = document.createElement('input');
+      amountInput.type = 'text';
+      amountInput.placeholder = '예: 2장';
+      amountInput.maxLength = 60;
+      amountInput.setAttribute('aria-label', '분량');
+      amountInput.value = amount;
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'delete';
+      removeBtn.textContent = '×';
+      removeBtn.setAttribute('aria-label', '이 재료 삭제');
+      removeBtn.addEventListener('click', () => { row.remove(); status.textContent = ''; });
+      row.append(nameInput, amountInput, removeBtn);
+      ingredientList.appendChild(row);
+      status.textContent = '';
+      return row;
     }
+
+    function readForm() {
+      return {
+        dish: dishName.value.trim(),
+        ingredients: Array.from(ingredientList.children).map(row => ({
+          name: row.children[0].value.trim(),
+          amount: row.children[1].value.trim()
+        })).filter(item => item.name || item.amount)
+      };
+    }
+
+    function loadSaved() {
+      let saved = null;
+      try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch (e) { /* 저장 자료가 없거나 손상됨 */ }
+      ingredientList.replaceChildren();
+      dishName.value = saved && typeof saved.dish === 'string' ? saved.dish : '';
+      if (saved && Array.isArray(saved.ingredients) && saved.ingredients.length) {
+        saved.ingredients.forEach(item => makeRow(String(item.name || ''), String(item.amount || '')));
+      } else {
+        for (let i = 0; i < 3; i++) makeRow();
+      }
+      status.textContent = '';
+    }
+
+    document.getElementById('startBtn').addEventListener('click', () => {
+      loadSaved();
+      homePage.hidden = true;
+      ingredientsPage.hidden = false;
+      document.getElementById('backBtn').focus();
+    });
+    document.getElementById('backBtn').addEventListener('click', () => {
+      ingredientsPage.hidden = true;
+      homePage.hidden = false;
+      document.getElementById('startBtn').focus();
+    });
+    document.getElementById('addBtn').addEventListener('click', () => {
+      const row = makeRow();
+      row.querySelector('input').focus();
+    });
+    document.getElementById('saveBtn').addEventListener('click', () => {
+      const data = readForm();
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        status.textContent = '✅ 재료 목록을 저장했어요!';
+      } catch (e) {
+        status.textContent = '저장할 수 없습니다. 브라우저 저장 설정을 확인해 주세요.';
+      }
+    });
+    ingredientList.addEventListener('input', () => { status.textContent = ''; });
+    dishName.addEventListener('input', () => { status.textContent = ''; });
   </script>
 </body>
 </html>
