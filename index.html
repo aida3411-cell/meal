@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>조리실습 모둠 도우미</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+      font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+      background: linear-gradient(145deg, #fff9f0, #ffe7c9);
+    }
+    .container {
+      width: 100%;
+      max-width: 420px;
+      padding: 55px 26px;
+      text-align: center;
+      background: white;
+      border-radius: 28px;
+      box-shadow: 0 12px 35px rgba(120, 70, 20, 0.10);
+    }
+    .icon { font-size: 72px; margin-bottom: 22px; }
+    h1 {
+      margin: 0 0 18px;
+      color: #513421;
+      font-size: clamp(25px, 6vw, 32px);
+      line-height: 1.4;
+      word-break: keep-all;
+    }
+    .description {
+      color: #806c5b;
+      font-size: 16px;
+      line-height: 1.7;
+      margin: 0 0 38px;
+      word-break: keep-all;
+    }
+    .start-btn {
+      width: 100%;
+      min-height: 60px;
+      padding: 16px 24px;
+      background: #f28b39;
+      color: white;
+      border: none;
+      border-radius: 16px;
+      font-size: 21px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .start-btn:hover { background: #e97724; }
+    .start-btn:active { transform: scale(0.97); }
+    .start-btn:focus-visible { outline: 3px solid #9c541d; outline-offset: 4px; }
+    @media (max-width: 480px) {
+      .container { padding: 44px 22px; }
+      .icon { font-size: 64px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <div class="icon" aria-hidden="true">👩‍🍳</div>
+    <h1>조리실습 모둠 도우미</h1>
+    <p class="description">우리 모둠의 즐겁고 체계적인 조리실습을 시작해요!</p>
+    <button type="button" class="start-btn" onclick="startApp()">시작하기</button>
+  </main>
+  <script>
+    function startApp() {
+      alert("준비 중입니다!");
+    }
+  </script>
+</body>
+</html>
