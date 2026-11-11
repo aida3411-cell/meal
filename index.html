@@ -19,7 +19,7 @@
     button { font:inherit; cursor:pointer; touch-action:manipulation; }
     .primary { width:100%; min-height:58px; color:#fff; background:var(--orange); border:0; border-radius:15px; font-size:19px; font-weight:700; }
     .primary:hover { background:#cd6423; }
-    button:focus-visible, input:focus-visible { outline:3px solid #ad5b20; outline-offset:3px; }
+    button:focus-visible, input:focus-visible, textarea:focus-visible { outline:3px solid #ad5b20; outline-offset:3px; }
     [hidden] { display:none !important; }
     .topbar { display:flex; align-items:center; gap:12px; margin-bottom:20px; }
     .back { background:#fff3e5; border:0; border-radius:12px; min-height:44px; padding:0 14px; color:var(--brown); font-weight:700; }
@@ -33,6 +33,21 @@
     .ingredient-list { display:flex; flex-direction:column; gap:10px; }
     .delete { width:42px; height:48px; border:0; border-radius:10px; background:#fff0ed; color:#aa442f; font-size:23px; }
     .add { margin-top:14px; width:100%; min-height:48px; border:2px dashed #e6ac7a; border-radius:12px; background:#fffaf4; color:#9a541e; font-weight:700; }
+    .secondary { width:100%; min-height:52px; border:1px solid #e5b487; border-radius:13px; background:#fff4e7; color:#8a4819; font-size:17px; font-weight:700; }
+    .recipe-summary { background:#fff8ed; border:1px solid #f1dac3; border-radius:14px; padding:14px; margin-bottom:18px; }
+    .recipe-summary strong { display:block; margin-bottom:6px; font-size:17px; }
+    .recipe-summary p { margin:0; color:#745a47; font-size:14px; overflow-wrap:anywhere; }
+    .step-list { display:flex; flex-direction:column; gap:13px; }
+    .step-card { border:1px solid #ead8c7; border-radius:15px; padding:14px; background:#fff; }
+    .step-heading { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px; }
+    .step-heading strong { font-size:16px; }
+    .step-actions { display:flex; gap:5px; }
+    .small-btn { border:0; border-radius:9px; padding:7px 10px; min-height:37px; background:#fff1e4; color:#704b30; font-weight:700; }
+    .small-btn.danger { background:#fff0ed; color:#aa442f; }
+    textarea { display:block; width:100%; min-height:90px; resize:vertical; padding:12px; font:inherit; font-size:16px; line-height:1.6; color:#3f3025; border:1px solid #dcc9b7; border-radius:11px; }
+    .chip-list { display:flex; flex-wrap:wrap; gap:7px; margin:10px 0 0; }
+    .chip { border:1px solid #efcba6; background:#fff7ed; border-radius:20px; padding:7px 10px; color:#75491e; font-size:13px; }
+    .tip { font-size:13px; color:#806c5b; line-height:1.6; }
     .footer { margin-top:20px; display:flex; flex-direction:column; gap:10px; }
     .save-note { font-size:13px; color:#786859; margin:0; text-align:center; }
     .status { min-height:20px; margin:8px 0 0; font-size:14px; color:#356b43; text-align:center; }
@@ -63,14 +78,40 @@
       <button class="add" id="addBtn" type="button">＋ 재료 추가하기</button>
       <div class="footer">
         <button class="primary" id="saveBtn" type="button">재료 목록 저장하기</button>
+        <button class="secondary" id="nextBtn" type="button">만드는 순서 보기 →</button>
         <p class="save-note">저장한 내용은 이 기기의 브라우저에 보관됩니다.</p>
         <p class="status" id="status" role="status" aria-live="polite"></p>
+      </div>
+    </main>
+
+    <main class="panel" id="stepsPage" hidden>
+      <div class="topbar">
+        <button class="back" type="button" id="stepsBackBtn">← 재료로</button>
+        <h2 class="section-title">🍳 만드는 순서</h2>
+      </div>
+      <p class="hint">입력한 재료와 분량을 확인하며 우리 모둠의 조리 순서를 정해 보세요.</p>
+      <section class="recipe-summary" aria-label="요리와 재료 요약">
+        <strong id="summaryDish">우리 모둠 요리</strong>
+        <p id="summaryIngredients"></p>
+      </section>
+      <p class="tip">※ 자동으로 표시된 순서는 조리 계획 초안입니다. 실제 조리법에 맞게 각 단계를 수정하세요. 재료 버튼을 누르면 해당 분량이 단계에 입력됩니다.</p>
+      <div id="stepList" class="step-list"></div>
+      <button class="add" id="addStepBtn" type="button">＋ 조리 단계 추가하기</button>
+      <div class="footer">
+        <button class="primary" id="saveStepsBtn" type="button">조리 순서 저장하기</button>
+        <button class="secondary" id="resetStepsBtn" type="button">재료에 맞춰 초안 다시 만들기</button>
+        <p class="save-note">조리 순서는 이 기기의 브라우저에 저장됩니다.</p>
+        <p class="status" id="stepStatus" role="status" aria-live="polite"></p>
       </div>
     </main>
   </div>
   <script>
     'use strict';
     const STORAGE_KEY = 'cooking-group-helper-ingredients-v1';
+    const STEPS_KEY = 'cooking-group-helper-steps-v1';
+    const stepsPage = document.getElementById('stepsPage');
+    const stepList = document.getElementById('stepList');
+    const stepStatus = document.getElementById('stepStatus');
     const homePage = document.getElementById('homePage');
     const ingredientsPage = document.getElementById('ingredientsPage');
     const ingredientList = document.getElementById('ingredientList');
@@ -127,6 +168,127 @@
       status.textContent = '';
     }
 
+    function storeIngredients() {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(readForm())); return true; }
+      catch (e) { return false; }
+    }
+
+    function ingredientText(items) {
+      return items.map(item => [item.name, item.amount].filter(Boolean).join(' ')).join(', ');
+    }
+
+    function createStep(textValue = '') {
+      const card = document.createElement('div');
+      card.className = 'step-card';
+      const heading = document.createElement('div');
+      heading.className = 'step-heading';
+      const title = document.createElement('strong');
+      const actions = document.createElement('div');
+      actions.className = 'step-actions';
+      const up = document.createElement('button');
+      up.type = 'button'; up.className = 'small-btn'; up.textContent = '↑'; up.setAttribute('aria-label','단계 위로 이동');
+      up.addEventListener('click', () => { const prev=card.previousElementSibling; if(prev) {stepList.insertBefore(card,prev); renumber();} });
+      const down = document.createElement('button');
+      down.type='button'; down.className='small-btn'; down.textContent='↓'; down.setAttribute('aria-label','단계 아래로 이동');
+      down.addEventListener('click', () => { const next=card.nextElementSibling; if(next) {stepList.insertBefore(next,card); renumber();} });
+      const del = document.createElement('button');
+      del.type='button'; del.className='small-btn danger'; del.textContent='삭제';
+      del.addEventListener('click', () => { card.remove(); renumber(); stepStatus.textContent=''; });
+      actions.append(up,down,del); heading.append(title,actions);
+      const textarea = document.createElement('textarea');
+      textarea.value = textValue; textarea.placeholder = '이 단계에서 할 일을 적어 보세요.';
+      textarea.setAttribute('aria-label','조리 단계 설명');
+      textarea.addEventListener('input', () => { stepStatus.textContent=''; });
+      const chips = document.createElement('div'); chips.className='chip-list';
+      const items=readForm().ingredients.filter(x=>x.name);
+      items.forEach(item => {
+        const chip=document.createElement('button'); chip.type='button'; chip.className='chip';
+        const label=[item.name,item.amount].filter(Boolean).join(' ');
+        chip.textContent='＋ '+label;
+        chip.addEventListener('click', () => {
+          const insert=(textarea.value.trim() ? ' ' : '')+label;
+          const at=textarea.selectionStart;
+          textarea.setRangeText(insert,at,textarea.selectionEnd,'end');
+          textarea.focus(); stepStatus.textContent='';
+        });
+        chips.appendChild(chip);
+      });
+      card.append(heading,textarea,chips);
+      stepList.appendChild(card); renumber(); return card;
+    }
+
+    function renumber() {
+      Array.from(stepList.children).forEach((card,i) => {
+        card.querySelector('strong').textContent = (i+1)+'단계';
+      });
+    }
+
+    function makeDraft(data) {
+      const items=data.ingredients.filter(item=>item.name);
+      const summary=ingredientText(items);
+      const dish=data.dish.toLowerCase();
+      if (/샌드위치|토스트/.test(dish)) {
+        return [
+          '손을 씻고 조리대와 도구를 깨끗하게 준비해요.',
+          '준비한 재료의 종류와 분량을 확인해요: '+(summary || '(재료를 입력해 주세요)'),
+          '빵과 속재료를 레시피에 맞게 준비하고, 조리가 필요한 재료는 충분히 익혀요.',
+          '정해 둔 분량에 맞춰 속재료를 빵 사이에 넣고 모양을 정리해요.',
+          '완성된 음식을 나누고 조리도구와 조리대를 정리해요.'
+        ];
+      }
+      return [
+        '손을 씻고 조리대와 도구를 깨끗하게 준비해요.',
+        '재료와 분량을 확인해요: '+(summary || '(재료를 입력해 주세요)'),
+        '레시피에 따라 필요한 재료를 씻고 손질해요. (방법 수정 필요)',
+        '레시피에 맞는 순서와 방법으로 조리해요. (방법 수정 필요)',
+        '완성 상태를 확인하고 담아낸 뒤 도구와 조리대를 정리해요.'
+      ];
+    }
+
+    function showSteps() {
+      const data=readForm();
+      if (!data.dish || !data.ingredients.some(x=>x.name && x.amount)) {
+        status.textContent='요리 이름과 재료명·분량을 하나 이상 입력해 주세요.';
+        return;
+      }
+      if (!storeIngredients()) {
+        status.textContent='재료를 저장하지 못했습니다. 브라우저 설정을 확인해 주세요.';
+        return;
+      }
+      document.getElementById('summaryDish').textContent=data.dish;
+      document.getElementById('summaryIngredients').textContent=ingredientText(data.ingredients);
+      let saved=null;
+      try { saved=JSON.parse(localStorage.getItem(STEPS_KEY)); } catch(e) {}
+      const signature=JSON.stringify(data);
+      const texts=saved && saved.signature===signature && Array.isArray(saved.steps) ? saved.steps : makeDraft(data);
+      stepList.replaceChildren();
+      texts.forEach(t=>createStep(String(t)));
+      if(!texts.length) createStep();
+      stepStatus.textContent='';
+      ingredientsPage.hidden=true; stepsPage.hidden=false;
+      document.getElementById('stepsBackBtn').focus();
+      window.scrollTo(0,0);
+    }
+
+    document.getElementById('nextBtn').addEventListener('click',showSteps);
+    document.getElementById('stepsBackBtn').addEventListener('click',()=>{
+      stepsPage.hidden=true; ingredientsPage.hidden=false;
+      window.scrollTo(0,0);
+    });
+    document.getElementById('addStepBtn').addEventListener('click',()=>{
+      const card=createStep(); card.querySelector('textarea').focus();
+    });
+    document.getElementById('saveStepsBtn').addEventListener('click',()=>{
+      const data={signature:JSON.stringify(readForm()),steps:Array.from(stepList.children).map(card=>card.querySelector('textarea').value)};
+      try { localStorage.setItem(STEPS_KEY,JSON.stringify(data)); stepStatus.textContent='✅ 조리 순서를 저장했어요!'; }
+      catch(e) {stepStatus.textContent='저장할 수 없습니다. 브라우저 저장 설정을 확인해 주세요.';}
+    });
+    document.getElementById('resetStepsBtn').addEventListener('click',()=>{
+      if (!confirm('현재 작성한 조리 단계를 초안으로 바꿀까요? 저장하지 않은 수정 내용은 사라집니다.')) return;
+      stepList.replaceChildren(); makeDraft(readForm()).forEach(t=>createStep(t));
+      stepStatus.textContent='초안을 다시 만들었어요. 내용을 검토하고 저장해 주세요.';
+    });
+
     document.getElementById('startBtn').addEventListener('click', () => {
       loadSaved();
       homePage.hidden = true;
@@ -143,13 +305,7 @@
       row.querySelector('input').focus();
     });
     document.getElementById('saveBtn').addEventListener('click', () => {
-      const data = readForm();
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        status.textContent = '✅ 재료 목록을 저장했어요!';
-      } catch (e) {
-        status.textContent = '저장할 수 없습니다. 브라우저 저장 설정을 확인해 주세요.';
-      }
+      status.textContent = storeIngredients() ? '✅ 재료 목록을 저장했어요!' : '저장할 수 없습니다. 브라우저 저장 설정을 확인해 주세요.';
     });
     ingredientList.addEventListener('input', () => { status.textContent = ''; });
     dishName.addEventListener('input', () => { status.textContent = ''; });
